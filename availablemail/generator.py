@@ -142,21 +142,20 @@ def _is_proton_like(domain: str) -> bool:
 #: additive bonus so `first.last` wins ties over `l{first}` even when
 #: the latter is shorter.
 _PATTERN_BONUS: dict[str, int] = {
-    "first.last": 6,   # B2B standard — wins ties
-    "first": 3,        # clean, casual
-    "firstlast": 2,    # compact
-    "first-last": 3,   # legible
-    "f.last": 4,       # enterprise-friendly
-    "f{last}": 4,      # common at scale
-    "l{first}": 1,     # ambiguous
-    "last.first": 3,   # formal industries
-    "last": 0,         # very ambiguous
+    "first.last": 6,  # B2B standard — wins ties
+    "first": 3,  # clean, casual
+    "firstlast": 2,  # compact
+    "first-last": 3,  # legible
+    "f.last": 4,  # enterprise-friendly
+    "f{last}": 4,  # common at scale
+    "l{first}": 1,  # ambiguous
+    "last.first": 3,  # formal industries
+    "last": 0,  # very ambiguous
     "last-first": 0,
 }
 
 
-def _score(local: str, domain: str, pattern: str, suffixes_used: int,
-           digits_used: int) -> int:
+def _score(local: str, domain: str, pattern: str, suffixes_used: int, digits_used: int) -> int:
     """Score 0-100. Higher is more professional."""
     score = 100
 
