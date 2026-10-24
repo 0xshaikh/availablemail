@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "availablemail"
+version = "0.1.0"
+description = "Find a professional email address from your name + a few keywords. Works with Gmail, Hotmail, Yahoo, Outlook, iCloud, Proton and more."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Anas Shaikh", email = "anas@0xshaikh.dev" },
+]
+keywords = [
+    "email",
+    "gmail",
+    "hotmail",
+    "yahoo",
+    "outlook",
+    "professional",
+    "name-generator",
+    "finder",
+    "cli",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.10"
+dependencies = []  # zero runtime dependencies!
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "build>=1.0.0",
+]
+
+[project.scripts]
+availablemail = "availablemail.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/0xshaikh/availablemail"
+Repository = "https://github.com/0xshaikh/availablemail"
+Issues = "https://github.com/0xshaikh/availablemail/issues"
+Changelog = "https://github.com/0xshaikh/availablemail/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = { find = { where = ["."], include = ["availablemail*"] } }
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = [".git", ".venv", "build", "dist", "*.egg-info", ".pytest_cache"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["availablemail"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
