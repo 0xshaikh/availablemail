@@ -2,6 +2,64 @@
 
 **Find a professional email address from your name and a few keywords.**
 
+[![CI](https://github.com/0xshaikh/availablemail/actions/workflows/ci.yml/badge.svg)](https://github.com/0xshaikh/availablemail/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/availablemail.svg)](https://pypi.org/project/availablemail/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+## 🎬 Live demo — try it right now
+
+[**→ Open the interactive web demo**](https://0xshaikh.github.io/availablemail/demo/)
+
+Type your name, pick a provider, and get a ranked list of candidates — runs
+entirely in your browser, zero server, zero install. This is the **same
+scoring algorithm** as the Python CLI, ported to client-side JS.
+
+<a href="https://0xshaikh.github.io/availablemail/demo/">
+  <img src="assets/webapp_demo.png" alt="availablemail live demo" width="720" />
+</a>
+
+Three ways to use the same tool:
+
+| Surface | URL / command | What you get |
+|---|---|---|
+| 🌐 **Static demo** | [0xshaikh.github.io/availablemail/demo/](https://0xshaikh.github.io/availablemail/demo/) | Browser UI, client-side JS, zero deps |
+| ⌨️ **CLI** | `pip install availablemail && availablemail anas shaikh` | Pipeable, scriptable, JSON/CSV/table |
+| 🔌 **Flask API** | `bash webapp/run.sh` → `POST http://localhost:5000/api/search` | Real Python backend, deploy anywhere |
+
+Deploy the Flask backend to Render.com / Fly.io / PythonAnywhere — see
+[`deploy/PUBLISH.md`](deploy/PUBLISH.md).
+
+## Screenshots
+
+<details>
+<summary><strong>1. The live web demo (client-side, works in any browser)</strong></summary>
+
+![availablemail web demo](assets/webapp_demo.png)
+
+</details>
+
+<details>
+<summary><strong>2. Basic find across Gmail (ranked by professional score)</strong></summary>
+
+![availablemail find](assets/find_google_demo.png)
+
+</details>
+
+<details>
+<summary><strong>3. With custom suffixes (dev, hello, founder, io, ai)</strong></summary>
+
+![availablemail with suffixes](assets/find_suffixes_demo.png)
+
+</details>
+
+<details>
+<summary><strong>4. All 16 providers and 7 groups</strong></summary>
+
+![availablemail list providers](assets/list_providers_demo.png)
+
+</details>
+
 ```console
 $ availablemail anas shaikh
   #  Score  Address
@@ -221,6 +279,53 @@ Yes — pass `--suffixes dev,mykeyword,mycompany` on the CLI. The generator
 is a single 300-line file; the pattern list is a plain Python list you
 can extend.
 
+## Web app
+
+Two ways to serve a live web demo from this repo:
+
+### 1. Static demo (default, on GitHub Pages)
+
+`docs/demo/index.html` is a **pure client-side JS port** of the Python
+generator. Same patterns, same scoring, same filters — just runs in the
+visitor's browser. No server cost, no API keys, works offline once loaded.
+
+Push to `main` → GitHub Pages auto-deploys to
+<https://0xshaikh.github.io/availablemail/demo/>.
+
+### 2. Flask backend (deploy the real Python code)
+
+`webapp/app.py` is a Flask app that calls the actual `availablemail`
+package. Exposes:
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/` | GET | Serves the demo HTML |
+| `/health` | GET | Health check |
+| `/api/patterns` | GET | Lists providers, groups, pattern templates |
+| `/api/providers` | GET | Providers + groups only |
+| `/api/search` | POST | JSON in → ranked candidates out |
+
+Example request:
+
+```bash
+curl -X POST http://localhost:5000/api/search \
+  -H 'Content-Type: application/json' \
+  -d '{"first_name":"Anas","last_name":"Shaikh","provider":"gmail","limit":10}'
+```
+
+Run locally:
+
+```bash
+bash webapp/run.sh   # creates venv, installs deps, starts Flask on :5000
+```
+
+Deploy to Render.com / Fly.io / PythonAnywhere — see
+[`deploy/PUBLISH.md`](deploy/PUBLISH.md). Configs are checked in:
+
+- `deploy/render.yaml` — Render Blueprint
+- `deploy/fly.toml` — Fly.io config
+- `deploy/local.sh` — one-shot local launch with optional Cloudflare tunnel
+
 ## Architecture
 
 ```
@@ -229,17 +334,59 @@ availablemail/
 │   ├── generator.py    # candidates, patterns, scoring
 │   ├── checker.py      # heuristic / microsoft / smtp modes
 │   └── cli.py          # argparse entry point
+├── docs/
+│   └── demo/           # static client-side web demo (GitHub Pages)
+├── webapp/             # Flask API backend (deploy anywhere)
+│   ├── app.py
+│   ├── requirements.txt
+│   └── run.sh
+├── deploy/             # deploy configs + PUBLISH.md
+│   ├── render.yaml     # Render.com Blueprint
+│   ├── fly.toml        # Fly.io config
+│   ├── local.sh        # one-shot local launch
+│   └── PUBLISH.md      # step-by-step deploy guide
+├── tools/              # dev utilities (screenshot generator, tests)
+├── assets/             # screenshots
 ├── tests/              # 49 pytest cases
-├── docs/               # GitHub Pages site
 └── pyproject.toml
 ```
 
 Zero runtime dependencies. Only dev deps: `pytest`, `pytest-cov`, `ruff`.
+The Flask app adds `flask` + `gunicorn` at deploy time (see
+`webapp/requirements.txt`).
+
+## How the scoring works
+
+Every candidate starts at **100**. Then penalties and bonuses apply:
+
+| Rule | Effect |
+|---|---|
+| Local part ≤ 12 chars | no penalty |
+| 13–16 chars | `-4` |
+| 17–20 chars | `-10` |
+| > 20 chars | `-20` |
+| Every trailing digit | `-15` |
+| Every suffix | `-8` |
+| Pattern = `first.last` | `+6` (B2B standard) |
+| Pattern = `f.last` | `+4` |
+| Pattern = `first.last`-family | `+2` |
+| Pattern = `first` or `last` | `-5` |
+| Proton + dot in local part | `-60` (Proton rejects dots) |
+
+Score is clamped to `[0, 100]`. Higher = more professional.
+
+The **exact same scoring** runs in the Python CLI and the client-side
+web demo — you can diff any candidate's score across all three surfaces.
 
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Issues welcome, bugs
 especially.
+
+The web demo (`docs/demo/index.html`) is a faithful port of
+`availablemail/generator.py` — if you change the Python scoring,
+update the JS to match. The Flask app (`webapp/app.py`) is a thin
+wrapper and needs no special care.
 
 ## License
 

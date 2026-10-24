@@ -24,7 +24,8 @@ def _build_parser() -> argparse.ArgumentParser:
             "  availablemail find anas --provider google --limit 20\n"
             "  availablemail find anas --provider all --suffixes dev,hello,founder\n"
             "  availablemail list-providers\n"
-            "  availablemail find anas --check zvonok   # needs ZVONOK_API_KEY\n"
+            "  availablemail find anas --provider microsoft --check microsoft\n"
+            "  availablemail find anas --format json --limit 10 > out.json\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

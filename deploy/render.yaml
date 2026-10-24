@@ -1,0 +1,25 @@
+# Render.com Blueprint for availablemail
+# Deploy from GitHub: https://dashboard.render.com → New → Blueprint → pick this repo.
+# Render.com free tier: 750 hours/mo, 512MB RAM, no credit card required.
+
+services:
+  - type: web
+    name: availablemail
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -e .
+      pip install -r webapp/requirements.txt
+    startCommand: gunicorn webapp.app:app -b 0.0.0.0:$PORT -w 2 --timeout 60
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: FLASK_DEBUG
+        value: "0"
+    domains:
+      - type: primary
+        name: availablemail.onrender.com

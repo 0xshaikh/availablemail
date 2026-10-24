@@ -1,0 +1,21 @@
+app = "availablemail"
+primary_region = "ams"
+
+[build]
+  builder = "heroku-22"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  auto_restart_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x256mb"
+
+[env]
+  PYTHON_VERSION = "3.12"
+  HOST = "0.0.0.0"
+  PORT = "8080"
